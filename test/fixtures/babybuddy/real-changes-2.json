@@ -1,0 +1,18 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 5,
+      "child": 2,
+      "time": "2026-10-17T09:00:00Z",
+      "wet": false,
+      "solid": true,
+      "color": "brown",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

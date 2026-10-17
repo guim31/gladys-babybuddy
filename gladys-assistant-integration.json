@@ -1,177 +1,848 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Baby Buddy",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Baby Buddy baby care log: feedings, diapers and sleep in Gladys, logged from a button.",
+    "fr": "Suivi Baby Buddy : repas, couches et sommeil dans Gladys, notés d'un bouton.",
+    "de": "Baby-Buddy-Babytagebuch: Mahlzeiten, Windeln und Schlaf in Gladys, per Taste eingetragen.",
+    "es": "Diario de Baby Buddy: tomas, pañales y sueño en Gladys, registrados con un botón."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-babybuddy:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-babybuddy/main/cover.png",
+  "categories": ["services"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Baby Buddy",
+        "fr": "Votre Baby Buddy",
+        "de": "Dein Baby Buddy",
+        "es": "Su Baby Buddy"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "A self-hosted Baby Buddy. Its API key is in Baby Buddy: user menu (top right), API key. Entries are written as that user.",
+        "fr": "Un Baby Buddy auto-hébergé. Sa clé d'API est dans Baby Buddy : menu utilisateur (en haut à droite), API key. Les entrées sont écrites au nom de cet utilisateur.",
+        "de": "Ein selbst gehostetes Baby Buddy. Den API-Schlüssel findest du in Baby Buddy: Benutzermenü (oben rechts), API key. Einträge werden im Namen dieses Benutzers geschrieben.",
+        "es": "Un Baby Buddy autoalojado. Su clave de API está en Baby Buddy: menú de usuario (arriba a la derecha), API key. Las entradas se escriben en nombre de ese usuario."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://docs.baby-buddy.net/",
+          "label": {
+            "en": "Baby Buddy documentation",
+            "fr": "Documentation de Baby Buddy",
+            "de": "Baby-Buddy-Dokumentation",
+            "es": "Documentación de Baby Buddy"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Address",
+        "fr": "Adresse",
+        "de": "Adresse",
+        "es": "Dirección"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "description": {
+        "en": "Address of Baby Buddy, with https:// for HTTPS and :port if not the default (8000 for the Docker image).",
+        "fr": "Adresse de Baby Buddy, avec https:// pour le HTTPS et :port s'il n'est pas standard (8000 pour l'image Docker).",
+        "de": "Adresse von Baby Buddy, mit https:// für HTTPS und :Port, falls nicht Standard (8000 beim Docker-Image).",
+        "es": "Dirección de Baby Buddy, con https:// para HTTPS y :puerto si no es el estándar (8000 para la imagen Docker)."
+      },
+      "placeholder": {
+        "en": "e.g. http://192.168.1.20:8000",
+        "fr": "ex. http://192.168.1.20:8000",
+        "de": "z. B. http://192.168.1.20:8000",
+        "es": "p. ej. http://192.168.1.20:8000"
+      },
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "api_key",
+      "type": "secret",
+      "label": {
+        "en": "API key",
+        "fr": "Clé d'API",
+        "de": "API-Schlüssel",
+        "es": "Clave de API"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "40 characters, shown in Baby Buddy: user menu, API key.",
+        "fr": "40 caractères, affichée dans Baby Buddy : menu utilisateur, API key.",
+        "de": "40 Zeichen, angezeigt in Baby Buddy: Benutzermenü, API key.",
+        "es": "40 caracteres, mostrada en Baby Buddy: menú de usuario, API key."
+      },
+      "required": true
     },
     {
-      "key": "unit",
+      "key": "options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      }
+    },
+    {
+      "key": "feeding_type",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Type of a feeding stopped from Gladys",
+        "fr": "Type d'un repas arrêté depuis Gladys",
+        "de": "Art einer über Gladys beendeten Mahlzeit",
+        "es": "Tipo de una toma terminada desde Gladys"
+      },
+      "description": {
+        "en": "Baby Buddy needs a type and a method to record a feeding: these are used when a feeding timer is stopped from Gladys.",
+        "fr": "Baby Buddy exige un type et une méthode pour enregistrer un repas : ceux-ci servent quand un minuteur de repas est arrêté depuis Gladys.",
+        "de": "Baby Buddy braucht eine Art und eine Methode für eine Mahlzeit: Diese gelten, wenn ein Mahlzeit-Timer über Gladys beendet wird.",
+        "es": "Baby Buddy necesita un tipo y un método para registrar una toma: se usan cuando se detiene un temporizador de toma desde Gladys."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "breast milk",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "breast milk",
+          "label": {
+            "en": "Breast milk",
+            "fr": "Lait maternel",
+            "de": "Muttermilch",
+            "es": "Leche materna"
+          }
+        },
+        {
+          "value": "formula",
+          "label": {
+            "en": "Formula",
+            "fr": "Lait infantile",
+            "de": "Säuglingsnahrung",
+            "es": "Leche de fórmula"
+          }
+        },
+        {
+          "value": "fortified breast milk",
+          "label": {
+            "en": "Fortified breast milk",
+            "fr": "Lait maternel enrichi",
+            "de": "Angereicherte Muttermilch",
+            "es": "Leche materna fortificada"
+          }
+        },
+        {
+          "value": "solid food",
+          "label": {
+            "en": "Solid food",
+            "fr": "Aliments solides",
+            "de": "Feste Nahrung",
+            "es": "Alimentos sólidos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+      "key": "feeding_method",
+      "type": "select",
+      "label": {
+        "en": "Method of a feeding stopped from Gladys",
+        "fr": "Méthode d'un repas arrêté depuis Gladys",
+        "de": "Methode einer über Gladys beendeten Mahlzeit",
+        "es": "Método de una toma terminada desde Gladys"
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "both breasts",
+      "options": [
+        {
+          "value": "both breasts",
+          "label": {
+            "en": "Both breasts",
+            "fr": "Les deux seins",
+            "de": "Beide Brüste",
+            "es": "Ambos pechos"
+          }
+        },
+        {
+          "value": "left breast",
+          "label": {
+            "en": "Left breast",
+            "fr": "Sein gauche",
+            "de": "Linke Brust",
+            "es": "Pecho izquierdo"
+          }
+        },
+        {
+          "value": "right breast",
+          "label": {
+            "en": "Right breast",
+            "fr": "Sein droit",
+            "de": "Rechte Brust",
+            "es": "Pecho derecho"
+          }
+        },
+        {
+          "value": "bottle",
+          "label": {
+            "en": "Bottle",
+            "fr": "Biberon",
+            "de": "Flasche",
+            "es": "Biberón"
+          }
+        },
+        {
+          "value": "parent fed",
+          "label": {
+            "en": "Parent fed",
+            "fr": "Donné par un parent",
+            "de": "Von Eltern gefüttert",
+            "es": "Dado por un padre"
+          }
+        },
+        {
+          "value": "self fed",
+          "label": {
+            "en": "Self fed",
+            "fr": "Mange seul",
+            "de": "Isst selbst",
+            "es": "Come solo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "weight_unit",
+      "type": "select",
+      "label": {
+        "en": "Weight unit",
+        "fr": "Unité de poids",
+        "de": "Gewichtseinheit",
+        "es": "Unidad de peso"
+      },
+      "description": {
+        "en": "Baby Buddy stores numbers without unit: the one you type weights in.",
+        "fr": "Baby Buddy enregistre des nombres sans unité : celle dans laquelle vous saisissez les poids.",
+        "de": "Baby Buddy speichert Zahlen ohne Einheit: die, in der du Gewichte eingibst.",
+        "es": "Baby Buddy guarda números sin unidad: la que usted usa para los pesos."
+      },
+      "required": false,
+      "default": "kg",
+      "options": [
+        {
+          "value": "kg",
+          "label": {
+            "en": "Kilograms",
+            "fr": "Kilogrammes",
+            "de": "Kilogramm",
+            "es": "Kilogramos"
+          }
+        },
+        {
+          "value": "lb",
+          "label": {
+            "en": "Pounds",
+            "fr": "Livres",
+            "de": "Pfund",
+            "es": "Libras"
+          }
+        }
+      ]
+    },
+    {
+      "key": "temperature_unit",
+      "type": "select",
+      "label": {
+        "en": "Temperature unit",
+        "fr": "Unité de température",
+        "de": "Temperatureinheit",
+        "es": "Unidad de temperatura"
+      },
+      "required": false,
+      "default": "celsius",
+      "options": [
+        {
+          "value": "celsius",
+          "label": {
+            "en": "Celsius",
+            "fr": "Celsius",
+            "de": "Celsius",
+            "es": "Celsius"
+          }
+        },
+        {
+          "value": "fahrenheit",
+          "label": {
+            "en": "Fahrenheit",
+            "fr": "Fahrenheit",
+            "de": "Fahrenheit",
+            "es": "Fahrenheit"
+          }
+        }
+      ]
+    },
+    {
+      "key": "allow_self_signed",
+      "type": "boolean",
+      "label": {
+        "en": "Accept self-signed certificates",
+        "fr": "Accepter les certificats auto-signés",
+        "de": "Selbstsignierte Zertifikate akzeptieren",
+        "es": "Aceptar certificados autofirmados"
+      },
+      "description": {
+        "en": "For an https:// address whose certificate is self-signed. Tick only for your own server.",
+        "fr": "Pour une adresse en https:// dont le certificat est auto-signé. À cocher pour votre propre serveur seulement.",
+        "de": "Für eine https://-Adresse mit selbstsigniertem Zertifikat. Nur für deinen eigenen Server aktivieren.",
+        "es": "Para una dirección https:// con certificado autofirmado. Márquelo solo para su propio servidor."
+      },
+      "required": false,
+      "default": false
+    },
+    {
+      "key": "poll_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often Baby Buddy is read. The minute counters move every minute anyway.",
+        "fr": "Fréquence de lecture de Baby Buddy. Les compteurs de minutes avancent de toute façon chaque minute.",
+        "de": "Wie oft Baby Buddy gelesen wird. Die Minutenzähler laufen trotzdem jede Minute weiter.",
+        "es": "Con qué frecuencia se lee Baby Buddy. Los contadores de minutos avanzan cada minuto de todos modos."
+      },
+      "required": false,
+      "default": "60",
+      "options": [
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de funciones"
+      },
+      "description": {
+        "en": "Names given to the features when a device is added, names of the timers started from Gladys, texts sent to scenes.",
+        "fr": "Noms donnés aux fonctionnalités à l'ajout d'un appareil, noms des minuteurs lancés depuis Gladys, textes envoyés aux scènes.",
+        "de": "Namen der Funktionen beim Hinzufügen eines Geräts, Namen der über Gladys gestarteten Timer, an Szenen gesendete Texte.",
+        "es": "Nombres de las funciones al añadir un dispositivo, nombres de los temporizadores iniciados desde Gladys, textos enviados a las escenas."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Reads Baby Buddy now and reports what it finds.",
+        "fr": "Lit Baby Buddy maintenant et indique ce qu'il trouve.",
+        "de": "Liest Baby Buddy sofort und meldet, was es findet.",
+        "es": "Lee Baby Buddy ahora e indica lo que encuentra."
+      },
       "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "feeding_overdue",
+      "label": {
+        "en": "No feeding for a while",
+        "fr": "Pas de repas depuis un moment",
+        "de": "Länger keine Mahlzeit",
+        "es": "Sin toma desde hace un rato"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "Once per feeding, when the chosen number of hours has passed since its end. Not while a feeding timer runs.",
+        "fr": "Une fois par repas, quand le nombre d'heures choisi est passé depuis sa fin. Pas pendant qu'un minuteur de repas tourne.",
+        "de": "Einmal pro Mahlzeit, wenn die gewählte Stundenzahl seit ihrem Ende vergangen ist. Nicht, solange ein Mahlzeit-Timer läuft.",
+        "es": "Una vez por toma, cuando han pasado las horas elegidas desde su final. No mientras un temporizador de toma está en marcha."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "child",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "required": false,
+          "label": {
+            "en": "Child (empty: any)",
+            "fr": "Enfant (vide : n'importe lequel)",
+            "de": "Kind (leer: beliebig)",
+            "es": "Niño (vacío: cualquiera)"
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "hours",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Hours since the last feeding",
+            "fr": "Heures depuis le dernier repas",
+            "de": "Stunden seit der letzten Mahlzeit",
+            "es": "Horas desde la última toma"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "1",
+              "label": {
+                "en": "1 h",
+                "fr": "1 h",
+                "de": "1 Std.",
+                "es": "1 h"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2 h",
+                "fr": "2 h",
+                "de": "2 Std.",
+                "es": "2 h"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3 h",
+                "fr": "3 h",
+                "de": "3 Std.",
+                "es": "3 h"
+              }
+            },
+            {
+              "value": "4",
+              "label": {
+                "en": "4 h",
+                "fr": "4 h",
+                "de": "4 Std.",
+                "es": "4 h"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5 h",
+                "fr": "5 h",
+                "de": "5 Std.",
+                "es": "5 h"
+              }
+            },
+            {
+              "value": "6",
+              "label": {
+                "en": "6 h",
+                "fr": "6 h",
+                "de": "6 Std.",
+                "es": "6 h"
+              }
+            },
+            {
+              "value": "7",
+              "label": {
+                "en": "7 h",
+                "fr": "7 h",
+                "de": "7 Std.",
+                "es": "7 h"
+              }
+            },
+            {
+              "value": "8",
+              "label": {
+                "en": "8 h",
+                "fr": "8 h",
+                "de": "8 Std.",
+                "es": "8 h"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "child_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "de": "Kind",
+            "es": "Niño"
+          }
+        },
+        {
+          "key": "hours",
+          "type": "number",
+          "label": {
+            "en": "Hours since the last feeding",
+            "fr": "Heures depuis le dernier repas",
+            "de": "Stunden seit der letzten Mahlzeit",
+            "es": "Horas desde la última toma"
+          }
+        },
+        {
+          "key": "minutes_since",
+          "type": "number",
+          "label": {
+            "en": "Minutes since the last feeding",
+            "fr": "Minutes depuis le dernier repas",
+            "de": "Minuten seit der letzten Mahlzeit",
+            "es": "Minutos desde la última toma"
+          }
+        },
+        {
+          "key": "last_feeding",
+          "type": "string",
+          "label": {
+            "en": "End of the last feeding (ISO 8601)",
+            "fr": "Fin du dernier repas (ISO 8601)",
+            "de": "Ende der letzten Mahlzeit (ISO 8601)",
+            "es": "Fin de la última toma (ISO 8601)"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "log_diaper",
+      "label": {
+        "en": "Log a diaper change",
+        "fr": "Noter une couche",
+        "de": "Windelwechsel eintragen",
+        "es": "Registrar un cambio de pañal"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Writes a diaper change in Baby Buddy, now.",
+        "fr": "Écrit un change de couche dans Baby Buddy, maintenant.",
+        "de": "Trägt jetzt einen Windelwechsel in Baby Buddy ein.",
+        "es": "Escribe un cambio de pañal en Baby Buddy, ahora."
+      },
+      "timeout_seconds": 20,
       "fields": [
         {
-          "key": "device",
+          "key": "child",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "required": true,
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "de": "Kind",
+            "es": "Niño"
+          }
+        },
+        {
+          "key": "kind",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Diaper",
+            "fr": "Couche",
+            "de": "Windel",
+            "es": "Pañal"
+          },
+          "options": [
+            {
+              "value": "wet",
+              "label": {
+                "en": "Wet",
+                "fr": "Mouillée",
+                "de": "Nass",
+                "es": "Mojado"
+              }
+            },
+            {
+              "value": "solid",
+              "label": {
+                "en": "Dirty",
+                "fr": "Sale",
+                "de": "Voll",
+                "es": "Sucio"
+              }
+            },
+            {
+              "value": "both",
+              "label": {
+                "en": "Wet and dirty",
+                "fr": "Mouillée et sale",
+                "de": "Nass und voll",
+                "es": "Mojado y sucio"
+              }
+            }
+          ]
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "child_name",
+          "type": "string",
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "de": "Kind",
+            "es": "Niño"
+          }
+        },
+        {
+          "key": "kind",
+          "type": "string",
+          "label": {
+            "en": "Diaper",
+            "fr": "Couche",
+            "de": "Windel",
+            "es": "Pañal"
+          }
+        }
+      ]
+    },
+    {
+      "key": "track_activity",
+      "label": {
+        "en": "Sleep or feeding timer",
+        "fr": "Minuteur de sommeil ou de repas",
+        "de": "Schlaf- oder Mahlzeit-Timer",
+        "es": "Temporizador de sueño o de toma"
+      },
+      "description": {
+        "en": "Starts, stops or toggles a Baby Buddy timer. Stopped, it becomes a sleep or feeding entry.",
+        "fr": "Démarre, arrête ou bascule un minuteur Baby Buddy. Arrêté, il devient une entrée de sommeil ou de repas.",
+        "de": "Startet, stoppt oder wechselt einen Baby-Buddy-Timer. Gestoppt wird er zu einem Schlaf- oder Mahlzeit-Eintrag.",
+        "es": "Inicia, detiene o alterna un temporizador de Baby Buddy. Al detenerse, se convierte en una entrada de sueño o de toma."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "child",
+          "type": "select",
+          "source": "devices",
+          "required": true,
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "de": "Kind",
+            "es": "Niño"
+          }
+        },
+        {
+          "key": "activity",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Activity",
+            "fr": "Activité",
+            "de": "Aktivität",
+            "es": "Actividad"
+          },
+          "options": [
+            {
+              "value": "sleep",
+              "label": {
+                "en": "Sleep",
+                "fr": "Sommeil",
+                "de": "Schlaf",
+                "es": "Sueño"
+              }
+            },
+            {
+              "value": "feeding",
+              "label": {
+                "en": "Feeding",
+                "fr": "Repas",
+                "de": "Mahlzeit",
+                "es": "Toma"
+              }
+            }
+          ]
+        },
+        {
+          "key": "command",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Command",
+            "fr": "Commande",
+            "de": "Befehl",
+            "es": "Orden"
+          },
+          "options": [
+            {
+              "value": "toggle",
+              "label": {
+                "en": "Start or stop (toggle)",
+                "fr": "Démarrer ou arrêter (bascule)",
+                "de": "Starten oder stoppen (wechseln)",
+                "es": "Iniciar o detener (alternar)"
+              }
+            },
+            {
+              "value": "start",
+              "label": {
+                "en": "Start",
+                "fr": "Démarrer",
+                "de": "Starten",
+                "es": "Iniciar"
+              }
+            },
+            {
+              "value": "stop",
+              "label": {
+                "en": "Stop",
+                "fr": "Arrêter",
+                "de": "Stoppen",
+                "es": "Detener"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "child_name",
+          "type": "string",
+          "label": {
+            "en": "Child",
+            "fr": "Enfant",
+            "de": "Kind",
+            "es": "Niño"
+          }
+        },
+        {
+          "key": "running",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Timer running",
+            "fr": "Minuteur en cours",
+            "de": "Timer läuft",
+            "es": "Temporizador en marcha"
+          }
+        },
+        {
+          "key": "duration_minutes",
+          "type": "number",
+          "label": {
+            "en": "Duration recorded (min)",
+            "fr": "Durée enregistrée (min)",
+            "de": "Eingetragene Dauer (Min.)",
+            "es": "Duración registrada (min)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "child_summary",
+      "label": {
+        "en": "Baby Buddy",
+        "fr": "Baby Buddy",
+        "de": "Baby Buddy",
+        "es": "Baby Buddy"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Time since the last feeding and diaper, sleep, and buttons to log a diaper or a timer.",
+        "fr": "Temps depuis le dernier repas et la dernière couche, sommeil, boutons couche et minuteurs.",
+        "de": "Zeit seit letzter Mahlzeit und Windel, Schlaf, Tasten für Windel und Timer.",
+        "es": "Tiempo desde la última toma y pañal, sueño y botones para pañal y temporizadores."
+      },
+      "icon": "smile",
+      "action_timeout_seconds": 20,
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Child (empty: the first one)",
+            "fr": "Enfant (vide : le premier)",
+            "de": "Kind (leer: das erste)",
+            "es": "Niño (vacío: el primero)"
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,23 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 2,
+      "child": 2,
+      "name": "Repas",
+      "start": "2026-10-17T13:05:00Z",
+      "duration": "00:08:00.927876",
+      "user": 1
+    },
+    {
+      "id": 1,
+      "child": 1,
+      "name": "Sommeil",
+      "start": "2026-10-17T12:50:00Z",
+      "duration": "00:23:00.928122",
+      "user": 1
+    }
+  ]
+}

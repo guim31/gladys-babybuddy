@@ -1,0 +1,51 @@
+{
+  "count": 4,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 4,
+      "child": 1,
+      "time": "2026-10-17T11:20:00Z",
+      "wet": true,
+      "solid": false,
+      "color": "",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 3,
+      "child": 1,
+      "time": "2026-10-17T08:00:00Z",
+      "wet": true,
+      "solid": true,
+      "color": "",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 2,
+      "child": 1,
+      "time": "2026-10-17T04:40:00Z",
+      "wet": true,
+      "solid": false,
+      "color": "",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 1,
+      "child": 1,
+      "time": "2026-10-16T19:50:00Z",
+      "wet": true,
+      "solid": false,
+      "color": "",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

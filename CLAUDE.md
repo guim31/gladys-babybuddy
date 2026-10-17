@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "widget"  # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,21 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> the hub (also used by the tests)
+src/hub.js                        minute tick, readings, states, "no feeding" event, commands, logs
+src/devices.js                    one device per child: features, names (4 languages), states
+src/babybuddy/client.js           Baby Buddy API client (/api/, `Authorization: Token`), errors by kind
+src/babybuddy/http.js             node:http/https request (self-signed certificates on request)
+src/babybuddy/model.js            children, timers (sleep/feeding by name), entries; local day; summary
+src/scenes.js                     scene actions `log_diaper`, `track_activity` (manifest `scene_actions`)
+src/widgets.js                    dashboard widget `child_summary` (manifest `widgets`)
+src/texts.js                      connection, error, report, action and toast texts (4 languages)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+                                  and helpers/fakeBabyBuddy.js (built from test/fixtures/babybuddy)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +75,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, widget content, feature names, manifest texts, and
+  `docs/en.md`, `docs/fr.md`, `docs/de.md`, `docs/es.md`, kept in sync
+  (`test/i18n.test.js` checks the languages and the doc sections).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -197,6 +204,44 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## Baby Buddy (propre à ce dépôt)
+
+- **API** (DRF, vérifiée sur `lscr.io/linuxserver/babybuddy` le 17/10/2026) : `/api/`, en-tête
+  `Authorization: Token <clé>` (clé de 40 caractères, menu utilisateur → API key). Clé fausse ou
+  absente → **403** `{"detail":"Invalid token."}`, pas 401. Listes paginées
+  `{ count, next, previous, results }`, filtres `child`, `ordering` (`-end`, `-time`, `-date`),
+  `limit`, `end_min`… Les dates reviennent **en UTC** (`…Z`) quel que soit le fuseau du serveur.
+- **Minuteurs** : `POST timers/ {child, name}` ; `POST sleep/ {timer}` et
+  `POST feedings/ {timer, type, method}` créent l'entrée (début = début du minuteur, fin =
+  maintenant) **et suppriment le minuteur**. Un repas exige `type` et `method` (toutes les
+  combinaisons sont acceptées par le serveur, même « formula » + « left breast »). Deux entrées
+  du même type qui se chevauchent → **400** `non_field_errors` « Another entry intersects… » avec un
+  lien HTML : le minuteur reste, le message est traduit (`ACTION_TEXT.overlap`). Un sommeil de
+  jour est marqué `nap: true` par le serveur (réglages de sieste). `timers/{id}/restart/` est un
+  PATCH (405 en POST) : inutilisé.
+- **Pas de type de minuteur** dans Baby Buddy : un minuteur a un nom libre (ou aucun, ceux du bouton
+  rapide de l'interface). Sommeil ou repas se reconnaissent **par le nom** (`timerActivity`, mots
+  des quatre langues, accents ignorés) ; ceux lancés depuis Gladys s'appellent `Sommeil`/`Repas`
+  (langue des noms). Un minuteur sans nom ne compte pour rien.
+- Baby Buddy **n'a pas d'unité** pour le poids et la température : options `weight_unit` et
+  `temperature_unit`. **Température en `device-temperature-sensor`**, pas `temperature-sensor` :
+  le cœur fait la moyenne des `temperature-sensor` d'une pièce, les 37,5 °C d'un bébé deviendraient
+  la température de la chambre. Poids en `text/text` (« 4,85 kg ») : ni catégorie ni unité de
+  masse dans le cœur.
+- Minuteur interne d'une minute (`tick`) : recalcule les « minutes depuis » sans réseau et lit Baby
+  Buddy quand l'intervalle (1, 2 ou 5 min) est passé ; 2 requêtes plus 5 par enfant et par lecture.
+- Déclencheur `feeding_overdue` : un événement par heure entière franchie (1 à 8), `hours` déclaré
+  en filtre `select` **et** en variable `number` (le cœur convertit chaque côté). État **en
+  mémoire** seulement : au premier passage d'un enfant (démarrage), les heures déjà franchies sont
+  connues ; une panne de Baby Buddy rattrape les heures manquées. Rien pendant un minuteur de repas.
+- Boutons du widget : chaque bouton de minuteur porte la commande affichée (`start`/`stop`), pour
+  qu'un widget périmé ne relance pas un minuteur. Les clés `diaper_wet`, `diaper_solid`,
+  `sleep_timer`, `feeding_timer` sont figées.
+- Test réel : `docker run` de `lscr.io/linuxserver/babybuddy` (admin/admin), jeton par
+  `manage.py shell` (`Token.objects.get_or_create`) avec `DJANGO_SETTINGS_MODULE=babybuddy.settings.base`
+  et `/lsiopy/bin/python3` dans `/app/www/public`. L'image déclare `VOLUME /config` : monter un
+  volume nommé, sinon `docker rm -v`.
 
 ## Store
 

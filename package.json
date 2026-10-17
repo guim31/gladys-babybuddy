@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-babybuddy",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant integration for Baby Buddy: feedings, diapers and sleep of your baby, with scene actions and a dashboard widget.",
   "type": "module",
   "main": "index.js",
   "scripts": {

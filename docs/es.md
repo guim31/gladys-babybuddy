@@ -1,0 +1,162 @@
+# Baby Buddy
+
+El diario de cuidados de su [Baby Buddy](https://docs.baby-buddy.net) en
+Gladys: cuánto tiempo desde la última toma y el último pañal, si el bebé
+duerme, cuánto sueño hoy. Un botón junto a la cuna registra un pañal o inicia y
+detiene el temporizador de sueño o de toma, y una escena le avisa cuando una
+toma se retrasa.
+
+> **Sus comentarios son bienvenidos.** Esta integración se ha probado con un
+> servidor Baby Buddy real (imagen Docker `lscr.io/linuxserver/babybuddy`,
+> octubre de 2026), pero todavía no con un Gladys real en el día a día. Si algo
+> no funciona como se describe, díganoslo en el
+> [foro de Gladys](https://community.gladysassistant.com) o en las
+> [issues](https://github.com/guim31/gladys-babybuddy/issues).
+
+## Qué necesita
+
+- Gladys Assistant 5.1.0 o posterior.
+- Un **Baby Buddy autoalojado**, accesible desde Gladys (la imagen Docker
+  escucha en el puerto 8000).
+- La **clave de API** de un usuario de Baby Buddy: en Baby Buddy, abra el menú
+  de usuario (arriba a la derecha) → **API key** y copie los 40 caracteres. Las
+  entradas escritas desde Gladys se escriben en nombre de ese usuario.
+
+## Configuración
+
+1. En Gladys, **Integraciones** → instale **Baby Buddy**.
+2. En la pantalla **Configuración**, rellene:
+   - **Dirección**: la dirección de Baby Buddy, por ejemplo
+     `http://192.168.1.20:8000`, o `https://bebe.example.org` detrás de un
+     proxy inverso (se conserva un prefijo de ruta como `/babybuddy`);
+   - **Clave de API**: la clave de su usuario de Baby Buddy.
+3. Opciones:
+   - **Tipo** y **Método de una toma terminada desde Gladys**: Baby Buddy
+     necesita ambos para registrar una toma; se usan cuando se detiene un
+     temporizador de toma desde Gladys (leche materna, ambos pechos por
+     defecto). Corrija después la entrada en Baby Buddy si es necesario;
+   - **Unidad de peso** y **Unidad de temperatura**: Baby Buddy guarda números
+     sin unidad, indique cuáles usa (kilogramos y Celsius por defecto);
+   - **Aceptar certificados autofirmados**: para una dirección `https://` con
+     certificado autofirmado, solo en su propio servidor;
+   - **Intervalo de actualización**: 1, 2 o 5 minutos (1 por defecto). Los
+     contadores de minutos avanzan cada minuto sea cual sea el intervalo;
+   - **Idioma de los nombres de funciones**: los nombres de las funciones al
+     añadir un dispositivo (francés por defecto), los nombres de los
+     temporizadores iniciados desde Gladys y los textos enviados a las escenas.
+4. Guarde y luego **Probar la conexión**: lee Baby Buddy e indica el número de
+   niños y de temporizadores en marcha.
+5. En la pestaña **Descubrir**, añada los dispositivos: uno por niño.
+
+## Dispositivos
+
+**Baby Buddy _nombre_**, uno por niño, con estas funciones:
+
+| Función                 | Qué indica                                                              |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `Desde la última toma`  | minutos desde el final de la última toma                                |
+| `Tomas hoy`             | tomas empezadas hoy                                                     |
+| `Toma en curso`         | 1 mientras un temporizador de toma está en marcha                       |
+| `Desde el último pañal` | minutos desde el último cambio de pañal                                 |
+| `Pañales hoy`           | cambios de pañal hoy                                                    |
+| `Durmiendo`             | 1 mientras un temporizador de sueño está en marcha                      |
+| `Sueño hoy`             | minutos de sueño registrados hoy (desde medianoche)                     |
+| `Temperatura`           | la última temperatura tomada                                            |
+| `Peso`                  | el último peso, como texto (`4,85 kg`): Gladys no tiene función de peso |
+
+Un **temporizador** cuenta como sueño o toma según su nombre: los iniciados
+desde Gladys se llaman `Sueño` y `Comida` (en el idioma de los nombres), y un
+temporizador llamado por ejemplo `Siesta`, `Toma` o `Lactancia` en Baby Buddy
+también cuenta. Un temporizador sin nombre no cuenta para ninguno. «Hoy» es el
+día en la zona horaria de Gladys. La temperatura es una «temperatura del
+dispositivo», para que los 37,5 °C de un niño no se conviertan en la
+temperatura de su habitación en Gladys.
+
+## Panel
+
+El widget **Baby Buddy** muestra, para un niño (el primero, o el elegido en la
+configuración del widget):
+
+- tres mosaicos: el tiempo desde la última toma (`…` mientras un temporizador
+  de toma está en marcha), desde el último pañal, y el sueño de hoy;
+- el estado: duerme desde cuándo, toma en curso u hora de la última toma,
+  último pañal y su tipo;
+- cuatro botones: **Pañal mojado**, **Pañal sucio**, **Iniciar sueño** /
+  **Despertó**, **Iniciar toma** / **Terminar toma**. Un botón hace lo que
+  muestra: un widget desactualizado nunca reinicia un temporizador que muestra
+  en marcha.
+
+## Escenas
+
+### Desencadenantes
+
+- **Sin toma desde hace un rato**: se activa una vez por toma cuando han
+  pasado las horas elegidas (1 a 8) desde su final. Filtros: el niño (vacío:
+  cualquiera) y el número de horas. No se activa mientras un temporizador de
+  toma está en marcha. Información transmitida a las acciones: el nombre del
+  niño, las horas, los minutos desde la última toma, el final de la última
+  toma.
+
+Al iniciarse la integración, lo que ya está retrasado es conocido, no nuevo: se
+activa en la siguiente hora cruzada. Lo mismo ocurre cuando cambia la última
+toma (una entrada añadida tarde, o borrada) y con las horas cruzadas durante
+un temporizador de toma, aunque luego se borre el temporizador. Tras una caída, las horas cruzadas
+entretanto se activan cuando Baby Buddy vuelve a responder.
+
+### Acciones
+
+- **Registrar un cambio de pañal**: escribe ahora un cambio de pañal mojado,
+  sucio, o mojado y sucio para un niño. Resultados: el nombre del niño, el
+  tipo.
+- **Temporizador de sueño o de toma**: inicia, detiene o alterna (inicia si
+  está detenido, detiene si está en marcha) el temporizador de sueño o de toma
+  de un niño. Al detenerse, el temporizador se convierte en una entrada de
+  sueño o de toma en Baby Buddy, desde su inicio hasta ahora. Iniciar un
+  temporizador en marcha, o no detener ninguno, no cambia nada. Resultados: el
+  nombre del niño, si el temporizador está en marcha, la duración registrada
+  (minutos).
+
+### Ideas de escenas
+
+- Un botón Zigbee junto a la cuna: una pulsación lanza **Temporizador de sueño
+  o de toma** con _Sueño_ e _Iniciar o detener_; una doble pulsación lanza
+  **Registrar un cambio de pañal** con _Mojado_.
+- **Sin toma desde hace un rato** con 3 horas, de noche: una luz suave en el
+  dormitorio y un mensaje en el teléfono.
+- Cuando `Durmiendo` pasa a 1: atenuar la luz de la habitación del bebé y
+  encender el altavoz de ruido blanco; cuando vuelve a 0, abrir un poco las
+  persianas.
+
+## Solución de problemas
+
+- **«Baby Buddy no responde»**: compruebe la dirección y el puerto desde el
+  equipo de Gladys (`http://<dirección>:8000` abre Baby Buddy en un
+  navegador).
+- **«Clave de API rechazada»**: copie de nuevo la clave desde el menú de
+  usuario de Baby Buddy (cambia si se regenera).
+- **«No hay ninguna API de Baby Buddy en esta dirección»**: algo responde, pero
+  no Baby Buddy: compruebe el puerto o el prefijo de ruta detrás de un proxy
+  inverso.
+- **«La dirección redirige»**: introduzca la dirección `https://`.
+- **«Otra entrada ya cubre este momento»**: Baby Buddy rechaza dos tomas (o dos
+  sueños) al mismo tiempo. Se conserva el temporizador: corrija las entradas
+  en Baby Buddy y luego detenga de nuevo el temporizador.
+- **Un temporizador no se reconoce como sueño o toma**: dele un nombre con la
+  palabra (`Sueño`, `Siesta`, `Comida`, `Toma`, o sus equivalentes en inglés,
+  francés o alemán).
+- Registros: `LOG_LEVEL=debug` en el contenedor muestra cada lectura.
+
+## Límites
+
+- Baby Buddy se lee cada 1 a 5 minutos: una entrada escrita en Baby Buddy
+  aparece en Gladys en ese plazo. Cada lectura hace 2 solicitudes, más 5 por
+  niño.
+- La integración lee las 50 últimas entradas de cada tipo por niño: suficiente
+  para un día. Extracción de leche, tiempo boca abajo, medicamentos, notas y
+  medidas distintas del peso y la temperatura no se leen.
+- Solo escribe cambios de pañal y temporizadores de sueño y de toma; nunca
+  modifica ni borra una entrada.
+- El desencadenante «Sin toma desde hace un rato» se guarda en memoria: una
+  hora cruzada mientras la integración está detenida no se anuncia después.
+- Gladys no guarda datos de Baby Buddy en el contenedor (`/data` queda vacío).
+- Sin relación con Baby Buddy.

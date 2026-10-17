@@ -1,0 +1,17 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 4,
+      "child": 2,
+      "start": "2026-10-16T18:00:00Z",
+      "end": "2026-10-17T05:00:00Z",
+      "duration": "11:00:00",
+      "nap": true,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

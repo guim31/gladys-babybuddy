@@ -1,0 +1,25 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "first_name": "Lou",
+      "last_name": "Martin",
+      "birth_date": "2026-08-01",
+      "birth_time": null,
+      "slug": "lou-martin",
+      "picture": null
+    },
+    {
+      "id": 2,
+      "first_name": "Sacha",
+      "last_name": "Martin",
+      "birth_date": "2025-11-20",
+      "birth_time": null,
+      "slug": "sacha-martin",
+      "picture": null
+    }
+  ]
+}

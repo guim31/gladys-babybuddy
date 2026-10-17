@@ -30,6 +30,19 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- the **Baby Buddy API key**, stored by Gladys in the integration
+  configuration (a `secret` field), sent only to the configured Baby Buddy
+  address in the `Authorization` header, and never logged;
+- the care log of the children (names, feedings, diapers, sleep, temperature,
+  weight), read from Baby Buddy and kept in memory only: nothing is written
+  under `/data`. The first names and the values reach Gladys as device names
+  and states;
+- network: outgoing HTTP(S) requests to the configured Baby Buddy address
+  only. With "Accept self-signed certificates" ticked, the certificate of that
+  address is not verified.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
 and the third-party services and devices the integration talks to.

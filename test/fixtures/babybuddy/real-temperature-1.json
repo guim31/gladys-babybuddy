@@ -1,0 +1,15 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "child": 1,
+      "temperature": 37.4,
+      "time": "2026-10-17T06:00:00Z",
+      "notes": null,
+      "tags": []
+    }
+  ]
+}
