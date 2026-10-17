@@ -1,33 +1,44 @@
+// -----------------------------------------------------------------------------
+// The configuration as typed by the user: the address, the key, the options.
+// -----------------------------------------------------------------------------
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeConfig, DEFAULT_CONFIG } from '../src/config.js';
+import { normalizeConfig, parseServerUrl } from '../src/config.js';
+import { timerActivity } from '../src/babybuddy/model.js';
 
-test('normalizeConfig returns the defaults when called with no argument', () => {
-  assert.deepEqual(normalizeConfig(), DEFAULT_CONFIG);
+test('the address: bare host, copied URL, reverse proxy prefix', () => {
+  assert.equal(parseServerUrl('192.0.2.30:8000'), 'http://192.0.2.30:8000');
+  assert.equal(parseServerUrl(' https://baby.example.org/ '), 'https://baby.example.org');
+  assert.equal(
+    parseServerUrl('https://baby.example.org/children/lou-martin/dashboard/'),
+    'https://baby.example.org',
+  );
+  assert.equal(parseServerUrl('http://192.0.2.30/babybuddy/api/'), 'http://192.0.2.30/babybuddy');
+  assert.equal(parseServerUrl('http://user:pass@192.0.2.30'), null, 'no credentials');
+  assert.equal(parseServerUrl('ftp://192.0.2.30'), null);
+  assert.equal(parseServerUrl(''), null);
 });
 
-test('normalizeConfig keeps user values over the defaults', () => {
-  const config = normalizeConfig({ latitude: 45.5, longitude: -73.6, unit: 'fahrenheit' });
-  assert.equal(config.latitude, 45.5);
-  assert.equal(config.longitude, -73.6);
-  assert.equal(config.unit, 'fahrenheit');
+test('the defaults and the unknown values', () => {
+  const config = normalizeConfig({ url: 'x', api_key: ' key ', poll_interval: '7' });
+  assert.equal(config.apiKey, 'key');
+  assert.equal(config.pollIntervalMs, 60_000);
+  assert.equal(config.language, 'fr');
+  assert.equal(config.feedingType, 'breast milk');
+  assert.equal(config.feedingMethod, 'both breasts');
+  assert.equal(normalizeConfig({ poll_interval: 300 }).pollIntervalMs, 300_000);
+  assert.equal(normalizeConfig({ feeding_type: 'milkshake' }).feedingType, 'breast milk');
 });
 
-test('normalizeConfig coerces numeric strings coming from a form', () => {
-  const config = normalizeConfig({ latitude: '48.8', longitude: '2.3', poll_frequency: '600' });
-  assert.equal(config.latitude, 48.8);
-  assert.equal(config.longitude, 2.3);
-  assert.equal(config.poll_frequency, 600);
-  assert.equal(typeof config.poll_frequency, 'number');
-});
-
-test('normalizeConfig falls back to the default for a missing numeric field', () => {
-  const config = normalizeConfig({ unit: 'celsius' });
-  assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
-});
-
-test('GLADYS_PREFER_LOCAL defaults to true and only an explicit false disables it', () => {
-  assert.equal(normalizeConfig().GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: true }).GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: false }).GLADYS_PREFER_LOCAL, false);
+test('a timer counts as sleep or feeding by its name, in four languages', () => {
+  for (const name of ['Sleep', 'Nap', 'Sommeil', 'sieste', 'Schlaf', 'Sueño', 'Lou dodo']) {
+    assert.equal(timerActivity(name), 'sleep', name);
+  }
+  for (const name of ['Feeding', 'Bottle', 'Repas', 'Tétée', 'Biberon', 'Mahlzeit', 'Comida']) {
+    assert.equal(timerActivity(name), 'feeding', name);
+  }
+  for (const name of [null, '', 'Bath', 'Timer 1']) {
+    assert.equal(timerActivity(name), null, String(name));
+  }
 });

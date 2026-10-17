@@ -1,0 +1,15 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 3,
+      "child": 2,
+      "weight": 9.2,
+      "date": "2026-10-01",
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

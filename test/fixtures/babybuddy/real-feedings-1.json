@@ -1,0 +1,67 @@
+{
+  "count": 5,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 5,
+      "child": 1,
+      "start": "2026-10-17T11:00:00Z",
+      "end": "2026-10-17T11:15:00Z",
+      "duration": "00:15:00",
+      "type": "formula",
+      "method": "bottle",
+      "amount": 150.0,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 4,
+      "child": 1,
+      "start": "2026-10-17T07:45:00Z",
+      "end": "2026-10-17T08:05:00Z",
+      "duration": "00:20:00",
+      "type": "breast milk",
+      "method": "right breast",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 3,
+      "child": 1,
+      "start": "2026-10-17T04:30:00Z",
+      "end": "2026-10-17T04:50:00Z",
+      "duration": "00:20:00",
+      "type": "formula",
+      "method": "bottle",
+      "amount": 120.0,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 2,
+      "child": 1,
+      "start": "2026-10-17T01:10:00Z",
+      "end": "2026-10-17T01:30:00Z",
+      "duration": "00:20:00",
+      "type": "breast milk",
+      "method": "left breast",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 1,
+      "child": 1,
+      "start": "2026-10-16T20:00:00Z",
+      "end": "2026-10-16T20:20:00Z",
+      "duration": "00:20:00",
+      "type": "breast milk",
+      "method": "both breasts",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

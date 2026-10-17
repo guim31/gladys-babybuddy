@@ -1,0 +1,19 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 6,
+      "child": 2,
+      "start": "2026-10-17T10:00:00Z",
+      "end": "2026-10-17T10:30:00Z",
+      "duration": "00:30:00",
+      "type": "solid food",
+      "method": "self fed",
+      "amount": null,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}

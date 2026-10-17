@@ -1,0 +1,37 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 3,
+      "child": 1,
+      "start": "2026-10-17T08:30:00Z",
+      "end": "2026-10-17T10:10:00Z",
+      "duration": "01:40:00",
+      "nap": true,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 2,
+      "child": 1,
+      "start": "2026-10-17T01:40:00Z",
+      "end": "2026-10-17T04:20:00Z",
+      "duration": "02:40:00",
+      "nap": false,
+      "notes": null,
+      "tags": []
+    },
+    {
+      "id": 1,
+      "child": 1,
+      "start": "2026-10-16T20:30:00Z",
+      "end": "2026-10-17T01:00:00Z",
+      "duration": "04:30:00",
+      "nap": false,
+      "notes": null,
+      "tags": []
+    }
+  ]
+}
