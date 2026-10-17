@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-17
+
 ### Added
 
 - Baby Buddy in Gladys: one device per child, with the minutes since the last
@@ -24,3 +26,6 @@ the notes of the version's GitHub Release.
   or toggle, for a single button by the cot).
 - A "Test the connection" button and a connection status naming the problem.
 - Every text in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-babybuddy/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-babybuddy/releases/tag/v1.0.0
