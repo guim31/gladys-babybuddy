@@ -98,7 +98,9 @@ configuración del widget):
   toma.
 
 Al iniciarse la integración, lo que ya está retrasado es conocido, no nuevo: se
-activa en la siguiente hora cruzada. Tras una caída, las horas cruzadas
+activa en la siguiente hora cruzada. Lo mismo ocurre cuando cambia la última
+toma (una entrada añadida tarde, o borrada) y con las horas cruzadas durante
+un temporizador de toma, aunque luego se borre el temporizador. Tras una caída, las horas cruzadas
 entretanto se activan cuando Baby Buddy vuelve a responder.
 
 ### Acciones

@@ -94,7 +94,9 @@ chosen in the widget settings):
   since the last feeding, the end of the last feeding.
 
 When the integration starts, what is already late is known, not news: it fires
-for the next hour crossed. After an outage, the hours crossed meanwhile fire
+for the next hour crossed. The same goes when the last feeding changes (an
+entry added late, or deleted) and for the hours crossed while a feeding timer
+runs, even if the timer is then deleted. After an outage, the hours crossed meanwhile fire
 when Baby Buddy answers again.
 
 ### Actions

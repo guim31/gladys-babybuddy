@@ -108,6 +108,8 @@ export class BabyBuddyClient {
         method,
         json,
         insecure: this.insecure,
+        // Short: a scene action chains up to three requests within its 20 s.
+        timeoutMs: 5_000,
         headers: { authorization: `Token ${this.apiKey}` },
       });
     } catch (err) {

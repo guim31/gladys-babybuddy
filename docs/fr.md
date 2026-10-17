@@ -100,7 +100,9 @@ dans les réglages du widget) :
   repas.
 
 Au démarrage de l'intégration, ce qui est déjà en retard est connu, pas
-nouveau : elle part à la prochaine heure franchie. Après une panne, les heures
+nouveau : elle part à la prochaine heure franchie. De même quand le dernier repas change
+(une entrée ajoutée en retard, ou supprimée) et pour les heures franchies
+pendant un minuteur de repas, même si le minuteur est ensuite supprimé. Après une panne, les heures
 franchies entre-temps partent quand Baby Buddy répond de nouveau.
 
 ### Actions

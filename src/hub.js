@@ -33,6 +33,7 @@ import {
   REPORT_TEXT,
   allLanguages,
   pick,
+  withName,
 } from './texts.js';
 
 const logger = createLogger({ name: 'babybuddy-hub' });
@@ -90,6 +91,8 @@ export class BabyBuddyHub {
     this.transports = new Map();
     this.timer = null;
     this.polling = null;
+    /** Commands run one at a time: a double press must not start two timers. */
+    this.commands = Promise.resolve();
     this.stopped = false;
     /** Problems already logged, by key: repeats go to debug. */
     this.warned = new Set();
@@ -452,8 +455,10 @@ export class BabyBuddyHub {
   /**
    * "No feeding for N hours": once per feeding and per whole hour crossed,
    * from 1 to 8, with `hours` = N, so the trigger's `hours` filter picks its
-   * threshold (a select: the core compares it as the string "3"). Nothing while a feeding timer runs. What is already crossed at
-   * the first reading of a child (a restart) is known, not news.
+   * threshold (a select: the core compares it as the string "3"). What is
+   * already crossed when a child is first read (a restart) or when the last
+   * feeding changes is known, not news; so are the hours crossed while a
+   * feeding timer runs. An outage of Baby Buddy is caught up when it is back.
    */
   async fireEvents(now) {
     for (const child of this.children) {
@@ -465,14 +470,18 @@ export class BabyBuddyHub {
       const hours = Math.floor(Math.max(0, now - feeding.endAt) / HOUR);
       const seen = this.overdue.get(child.id);
       if (!seen || seen.feedingId !== feeding.id) {
-        // First reading of this child, or a new feeding: start counting from here.
-        this.overdue.set(child.id, { feedingId: feeding.id, announced: seen ? 0 : hours });
-        if (!seen) {
-          continue;
-        }
+        // First reading of this child, or another last feeding (a new one, a
+        // late entry, a deleted one): what is already crossed is not news.
+        this.overdue.set(child.id, { feedingId: feeding.id, announced: hours });
+        continue;
       }
-      const state = this.overdue.get(child.id);
-      if (summary.feedingTimer || hours <= state.announced) {
+      const state = seen;
+      if (summary.feedingTimer) {
+        // The child is eating: the hours crossed meanwhile are dropped, not deferred.
+        state.announced = Math.max(state.announced, hours);
+        continue;
+      }
+      if (hours <= state.announced) {
         continue;
       }
       const from = state.announced;
@@ -518,9 +527,8 @@ export class BabyBuddyHub {
         { cause: err },
       );
     }
-    const colon = language === 'fr' ? ' : ' : ': ';
     const status = err.status ? ` (HTTP ${err.status})` : '';
-    return new Error(`Baby Buddy${colon}${pick(ERROR_TEXT[err.kind], language)}${status}`, {
+    return new Error(`${withName(pick(ERROR_TEXT[err.kind], language), language)}${status}`, {
       cause: err,
     });
   }
@@ -565,7 +573,17 @@ export class BabyBuddyHub {
    * Log a diaper change now.
    * @returns {Promise<{ child: object, kind: string, message: object }>}
    */
-  async logDiaper(externalId, kind) {
+  serialize(fn) {
+    const run = this.commands.catch(() => {}).then(fn);
+    this.commands = run;
+    return run;
+  }
+
+  logDiaper(externalId, kind) {
+    return this.serialize(() => this.doLogDiaper(externalId, kind));
+  }
+
+  async doLogDiaper(externalId, kind) {
     if (!Object.values(DIAPER_KINDS).includes(kind)) {
       throw new Error(pick(ACTION_TEXT.badField, this.language));
     }
@@ -593,7 +611,11 @@ export class BabyBuddyHub {
    * Starting a running timer, or stopping none, changes nothing.
    * @returns {Promise<{ child: object, running: boolean, minutes: number, message: object }>}
    */
-  async activity(externalId, activity, command) {
+  activity(externalId, activity, command) {
+    return this.serialize(() => this.doActivity(externalId, activity, command));
+  }
+
+  async doActivity(externalId, activity, command) {
     if (
       !Object.values(ACTIVITIES).includes(activity) ||
       !Object.values(COMMANDS).includes(command)

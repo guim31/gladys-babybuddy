@@ -257,3 +257,62 @@ test('a device added in Gladys gets its states again', async (t) => {
   await w.fake.deviceCreated(device);
   assert.ok(w.fake.states.length > count, 'states sent again');
 });
+
+test('a double press starts one timer only', async (t) => {
+  const w = await world(t);
+  const child = childId(w.gladys, LOU).device;
+  await w.fake.sceneAction('track_activity', { child, activity: 'sleep', command: 'stop' });
+  const press = () =>
+    w.fake.sceneAction('track_activity', { child, activity: 'sleep', command: 'toggle' });
+  const [first, second] = await Promise.all([press(), press()]);
+  assert.equal(first.success && second.success, true);
+  assert.equal(w.server.timers.filter((timer) => timer.child === LOU).length, 0, 'on, then off');
+});
+
+test('no burst of events when the last feeding changes or a feeding timer is dropped', async (t) => {
+  const w = await world(t);
+  const fired = () => w.fake.sceneEvents.filter((event) => event.key === 'feeding_overdue');
+  // A feeding of Lou entered by mistake, then deleted: the older one is back at 4 h.
+  w.server.data.feedings.push({
+    id: 500,
+    child: LOU,
+    start: new Date(START - 60_000).toISOString(),
+    end: new Date(START).toISOString(),
+  });
+  await w.hub.poll();
+  w.clock.advance(2 * HOUR);
+  w.server.data.feedings = w.server.data.feedings.filter((entry) => entry.id !== 500);
+  await w.hub.poll();
+  assert.deepEqual(fired(), []);
+  // Sacha's feeding timer is deleted in Baby Buddy after 3 h: no 1, 2, 3 h at once.
+  w.server.timers = w.server.timers.filter((timer) => timer.child !== SACHA);
+  await w.hub.poll();
+  assert.deepEqual(
+    fired().filter((event) => event.data.child_name === 'Sacha'),
+    [],
+  );
+});
+
+test('a stopped timer of Baby Buddy 1.x is not running', async (t) => {
+  const w = await world(t);
+  for (const timer of w.server.timers) {
+    timer.active = false;
+  }
+  await w.hub.poll();
+  assert.equal(states(w, LOU).sleeping, 0);
+  assert.equal(states(w, SACHA).feeding_in_progress, 0);
+});
+
+test('an unreachable Baby Buddy is named once in the messages', async (t) => {
+  const w = await world(t);
+  w.server.online = false;
+  const ack = await w.fake.action('test_connection', {});
+  assert.equal(ack.success, false);
+  assert.equal(ack.error, 'Baby Buddy does not answer.');
+  const action = await w.fake.sceneAction('track_activity', {
+    child: childId(w.gladys, LOU).device,
+    activity: 'sleep',
+    command: 'stop',
+  });
+  assert.equal(action.error, 'Baby Buddy does not answer');
+});

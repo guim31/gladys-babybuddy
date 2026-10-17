@@ -69,7 +69,11 @@ export function parseChildren(list) {
 export function parseTimers(list) {
   return (
     list
-      .filter((timer) => integer(timer?.id) !== null && integer(timer.child) !== null)
+      // Baby Buddy 1.x keeps stopped timers in the list, with `active: false`.
+      .filter(
+        (timer) =>
+          integer(timer?.id) !== null && integer(timer.child) !== null && timer.active !== false,
+      )
       .map((timer) => ({
         id: timer.id,
         childId: timer.child,

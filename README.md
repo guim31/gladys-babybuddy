@@ -83,6 +83,9 @@ integration ran in its own container under the Gladys sandbox limits
 (read-only root, no capabilities, 256 MB), read the server, logged diapers and
 started and stopped timers, checked on the Baby Buddy side.
 
+Baby Buddy 2.x is the target (a stopped timer of 1.x, still listed with
+`active: false`, is ignored).
+
 Not checked: a real Gladys instance (the tests use the SDK's fake Gladys),
 Baby Buddy behind a reverse proxy with a path prefix, the Home Assistant
 add-on of Baby Buddy.

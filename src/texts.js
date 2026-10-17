@@ -85,21 +85,21 @@ export const ERROR_TEXT = {
 export const REPORT_TEXT = {
   en: {
     ok: (children, timers) => `Baby Buddy OK: ${children} child(ren), ${timers} running timer(s).`,
-    failed: (reason) => `Baby Buddy: ${reason}.`,
+    failed: (reason) => `${withName(reason, 'en')}.`,
   },
   fr: {
     ok: (children, timers) =>
       `Baby Buddy OK : ${children} enfant(s), ${timers} minuteur(s) en cours.`,
-    failed: (reason) => `Baby Buddy : ${reason}.`,
+    failed: (reason) => `${withName(reason, 'fr')}.`,
   },
   de: {
     ok: (children, timers) => `Baby Buddy OK: ${children} Kind(er), ${timers} laufende(r) Timer.`,
-    failed: (reason) => `Baby Buddy: ${reason}.`,
+    failed: (reason) => `${withName(reason, 'de')}.`,
   },
   es: {
     ok: (children, timers) =>
       `Baby Buddy OK: ${children} niño(s), ${timers} temporizador(es) en marcha.`,
-    failed: (reason) => `Baby Buddy: ${reason}.`,
+    failed: (reason) => `${withName(reason, 'es')}.`,
   },
 };
 
@@ -192,6 +192,15 @@ export const DONE_TEXT = {
     feedingNone: (name) => `No hay ningún temporizador de toma en marcha para ${name}.`,
   },
 };
+
+/** "Baby Buddy: <reason>", unless the reason already names Baby Buddy. */
+export function withName(reason, language) {
+  const text = reason.replace(/\.$/, '');
+  if (/^Baby Buddy\b/.test(text)) {
+    return text;
+  }
+  return `Baby Buddy${language === 'fr' ? ' : ' : ': '}${text}`;
+}
 
 export const LANGUAGE_FALLBACK = 'en';
 

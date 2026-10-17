@@ -99,7 +99,9 @@ Widget-Einstellungen gewählte):
   Mahlzeit.
 
 Beim Start der Integration ist schon Überfälliges bekannt, nicht neu: Ausgelöst
-wird bei der nächsten überschrittenen Stunde. Nach einem Ausfall lösen die
+wird bei der nächsten überschrittenen Stunde. Genauso, wenn sich die letzte Mahlzeit ändert (ein
+nachgetragener oder gelöschter Eintrag), und für die Stunden, die während
+eines Mahlzeit-Timers vergehen, auch wenn der Timer danach gelöscht wird. Nach einem Ausfall lösen die
 inzwischen überschrittenen Stunden aus, sobald Baby Buddy wieder antwortet.
 
 ### Aktionen
