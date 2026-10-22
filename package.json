@@ -1,6 +1,6 @@
 {
   "name": "gladys-babybuddy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration for Baby Buddy: feedings, diapers and sleep of your baby, with scene actions and a dashboard widget.",
   "type": "module",
